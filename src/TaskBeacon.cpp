@@ -108,7 +108,16 @@ bool BeaconTask::sendBeacon(System &system) {
       return false;
     }
   }
-  _beaconMsg->getBody()->setData(String("=") + create_lat_aprs(lat) + "L" + create_long_aprs(lng) + "&" + system.getUserConfig()->beacon.message);
+  
+//valor de offset de calibracion. Primero establecer este valor en cero y medir bateria directamente con multimetro.
+// La diferencia entre ambas lectura corresponderá al valor offset y el valor final estará calibrado
+  float v_offset = 0.23; 
+
+//Lectura de valor de bateria. Se lee pin 35 que tiene un divisor de voltaje que baja el voltaje a la mitad.  
+ float vbat = (((analogRead(35) * 3.3) / 4095)*2) + v_offset;
+
+//Linea modificada para incorporar voltaje de bateria
+  _beaconMsg->getBody()->setData(String("=") + create_lat_aprs(lat) + "L" + create_long_aprs(lng) + "&" + "Bat:" + vbat + system.getUserConfig()->beacon.message);
 
   system.getLogger().log(logging::LoggerLevel::LOGGER_LEVEL_INFO, getName(), "[%s] %s", timeString().c_str(), _beaconMsg->encode().c_str());
 
